@@ -65,6 +65,8 @@ describe('UserRepository', () => {
         full_name: 'John Doe',
         auth_provider: 'email',
         is_email_verified: false,
+        email_verification_expires_at: new Date().getTime(),
+        email_verification_token: 'random-string-token',
       };
       const result = await userRepository.create(inserted);
       expect(result.email).toEqual(inserted.email);

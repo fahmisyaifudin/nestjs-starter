@@ -14,11 +14,11 @@ export const UserSchema = Type.Object({
   google_id: Type.Union([Type.String(), Type.Null()]),
   is_email_verified: Type.Boolean(),
   email_verification_token: Type.Union([Type.String(), Type.Null()]),
-  email_verification_expires_at: Type.Union([Type.Date(), Type.Null()]),
+  email_verification_expires_at: Type.Union([Type.Number(), Type.Null()]),
   password_reset_token: Type.Union([Type.String(), Type.Null()]),
-  password_reset_expires_at: Type.Union([Type.Date(), Type.Null()]),
-  created_at: Type.Date(),
-  updated_at: Type.Date(),
+  password_reset_expires_at: Type.Union([Type.Number(), Type.Null()]),
+  created_at: Type.Number(),
+  updated_at: Type.Number(),
 });
 
 export type UserTable = Static<typeof UserSchema>;
