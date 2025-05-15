@@ -3,6 +3,8 @@ import { Insertable, Selectable, Updateable } from 'kysely';
 
 export interface Database {
   users: UserTable;
+  events: EventTable;
+  event_forms: EventFormTable;
 }
 
 export const UserSchema = Type.Object({
@@ -21,7 +23,38 @@ export const UserSchema = Type.Object({
   updated_at: Type.Number(),
 });
 
+export const EventSchema = Type.Object({
+  id: Type.String(),
+  title: Type.String(),
+  description: Type.Union([Type.String(), Type.Null()]),
+  start_date: Type.Number(),
+  end_date: Type.Number(),
+  images: Type.Array(Type.String()),
+  venue_name: Type.Union([Type.String(), Type.Null()]),
+  venue_address: Type.Union([Type.String(), Type.Null()]),
+  created_at: Type.Number(),
+  updated_at: Type.Number(),
+});
+
+export const EventFormSchema = Type.Object({
+  id: Type.String(),
+  event_id: Type.String(),
+  label: Type.String(),
+  datatype: Type.Union([
+    Type.Literal('text'),
+    Type.Literal('number'),
+    Type.Literal('date'),
+    Type.Literal('datetime'),
+    Type.Literal('checkbox'),
+    Type.Literal('dropdown'),
+    Type.Literal('file'),
+  ]),
+  options: Type.Union([Type.Array(Type.String()), Type.Null()]),
+});
+
 export type UserTable = Static<typeof UserSchema>;
+export type EventTable = Static<typeof EventSchema>;
+export type EventFormTable = Static<typeof EventFormSchema>;
 
 type Entity<T> = {
   table: T;
