@@ -141,6 +141,10 @@ describe('AuthService', () => {
       expect(userRepository.create).toHaveBeenCalledWith({
         ...registerRequest,
         password_hash: expect.any(String),
+        is_email_verified: expect.any(Boolean),
+        email_verification_expires_at: expect.any(Number),
+        email_verification_token: expect.any(String),
+        auth_provider: expect.any(String),
       });
       expect(result).toEqual({
         user: {

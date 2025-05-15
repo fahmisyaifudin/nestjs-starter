@@ -8,6 +8,7 @@ import {
 import * as path from 'path';
 import { promises as fs } from 'fs';
 import { Pool } from 'pg';
+import 'dotenv/config';
 
 const db = new Kysely({
   dialect: new PostgresDialect({

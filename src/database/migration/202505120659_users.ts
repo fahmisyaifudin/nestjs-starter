@@ -20,14 +20,14 @@ export async function up(db: Kysely<any>): Promise<void> {
       col.notNull().defaultTo(false),
     )
     .addColumn('email_verification_token', 'varchar(255)')
-    .addColumn('email_verification_expires_at', 'timestamp')
+    .addColumn('email_verification_expires_at', 'bigint')
     .addColumn('password_reset_token', 'varchar(255)')
-    .addColumn('password_reset_expires_at', 'timestamp')
-    .addColumn('created_at', 'timestamp', (col) =>
-      col.defaultTo(sql`CURRENT_TIMESTAMP`),
+    .addColumn('password_reset_expires_at', 'bigint')
+    .addColumn('created_at', 'bigint', (col) =>
+      col.defaultTo(sql`EXTRACT(EPOCH FROM NOW()) * 1000`).notNull(),
     )
-    .addColumn('updated_at', 'timestamp', (col) =>
-      col.defaultTo(sql`CURRENT_TIMESTAMP`),
+    .addColumn('updated_at', 'bigint', (col) =>
+      col.defaultTo(sql`EXTRACT(EPOCH FROM NOW()) * 1000`).notNull(),
     )
     .execute();
 

@@ -61,6 +61,12 @@ export class AuthService {
       const user = await this.userRepo.create({
         ...payload,
         password_hash: bcrypt.hashSync(payload.password),
+        is_email_verified: false,
+        email_verification_token: [...Array(32)]
+          .map(() => Math.random().toString(36)[2])
+          .join(''), // random string 32 length
+        email_verification_expires_at: new Date().getTime() + 60 * 60 * 1000, // 60 minutes expired
+        auth_provider: 'email',
       });
       return {
         user: {

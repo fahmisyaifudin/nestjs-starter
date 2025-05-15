@@ -23,6 +23,9 @@ export class UserRepository {
         email: payload.email,
         full_name: payload.full_name,
         password_hash: payload.password_hash,
+        is_email_verified: payload.is_email_verified,
+        email_verification_token: payload.email_verification_token,
+        email_verification_expires_at: payload.email_verification_expires_at,
       })
       .returningAll()
       .executeTakeFirstOrThrow();
