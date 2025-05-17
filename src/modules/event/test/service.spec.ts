@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { EventService } from '../service';
 import { EventRepository } from '../repository';
 import { factories } from '../factory';
-import { EventQuery } from '../schema';
+import { Api } from '../schema';
 
 describe('EventService', () => {
   let service: EventService;
@@ -41,7 +41,7 @@ describe('EventService', () => {
     it('should successfully get event', async () => {
       // Arrange
       mockEventRepository.getActiveEvents.mockResolvedValue(mockEvents);
-      const query: EventQuery = {
+      const query: Api['get']['query'] = {
         start_date: 0,
         end_date: new Date().getTime(),
         page: 1,

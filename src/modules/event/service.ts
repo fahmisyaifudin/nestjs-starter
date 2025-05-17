@@ -4,21 +4,14 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import {
-  EventFormParams,
-  EventFormResponse,
-  EventParams,
-  EventQuery,
-  EventResponse,
-  EventSingleResponse,
-} from './schema';
+import { Api } from './schema';
 import { EventRepository } from './repository';
 
 @Injectable()
 export class EventService {
   constructor(private eventRepo: EventRepository) {}
 
-  async get(query: EventQuery): Promise<EventResponse> {
+  async get(query: Api['get']['query']): Promise<Api['get']['response']> {
     try {
       const events = await this.eventRepo.getActiveEvents({
         start: query.start_date,
@@ -38,7 +31,9 @@ export class EventService {
       throw new InternalServerErrorException(error.message);
     }
   }
-  async detail(params: EventParams): Promise<EventSingleResponse> {
+  async detail(
+    params: Api['detail']['params'],
+  ): Promise<Api['detail']['response']> {
     try {
       const event = await this.eventRepo.getEventById(params.id);
       if (!event) {
@@ -54,7 +49,9 @@ export class EventService {
       throw new InternalServerErrorException(error.message);
     }
   }
-  async getForm(params: EventFormParams): Promise<EventFormResponse> {
+  async getForm(
+    params: Api['form']['params'],
+  ): Promise<Api['form']['response']> {
     try {
       const forms = await this.eventRepo.getEventForm(params.event_id);
       return {

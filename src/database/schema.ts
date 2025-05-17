@@ -6,6 +6,8 @@ export interface Database {
   events: EventTable;
   event_forms: EventFormTable;
   event_tickets: EventTicketTable;
+  tickets: TicketTable;
+  event_form_ticket: EventFormTicketTable;
 }
 
 export const UserSchema = Type.Object({
@@ -65,10 +67,31 @@ export const EventTicketSchema = Type.Object({
   updated_at: Type.Number(),
 });
 
+export const TicketSchema = Type.Object({
+  id: Type.String(),
+  name: Type.String(),
+  email: Type.String(),
+  code: Type.String(),
+  event_ticket_id: Type.String(),
+  created_at: Type.Number(),
+  updated_at: Type.Number(),
+});
+
+export const EventFormTicketSchema = Type.Object({
+  id: Type.String(),
+  event_form_id: Type.String(),
+  ticket_id: Type.String(),
+  value: Type.Union([Type.String(), Type.Null()]),
+  created_at: Type.Number(),
+  updated_at: Type.Number(),
+});
+
 export type UserTable = Static<typeof UserSchema>;
 export type EventTable = Static<typeof EventSchema>;
 export type EventFormTable = Static<typeof EventFormSchema>;
 export type EventTicketTable = Static<typeof EventTicketSchema>;
+export type TicketTable = Static<typeof TicketSchema>;
+export type EventFormTicketTable = Static<typeof EventFormTicketSchema>;
 
 type Entity<T> = {
   table: T;

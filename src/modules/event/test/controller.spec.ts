@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EventController } from '../controller';
 import { EventService } from '../service';
-import { EventQuery, EventParams, EventFormParams } from '../schema';
+import { Api } from '../schema';
 import { factories } from '../factory';
 
 describe('EventController', () => {
@@ -31,7 +31,7 @@ describe('EventController', () => {
 
   describe('get', () => {
     it('should return active events', async () => {
-      const query: EventQuery = {
+      const query: Api['get']['query'] = {
         start_date: 0,
         end_date: new Date().getTime(),
         page: 1,
@@ -55,7 +55,7 @@ describe('EventController', () => {
 
   describe('detail', () => {
     it('should return event detail', async () => {
-      const params: EventParams = {
+      const params: Api['detail']['params'] = {
         id: '1',
       };
 
@@ -72,7 +72,7 @@ describe('EventController', () => {
 
   describe('getForm', () => {
     it('should return event forms', async () => {
-      const params: EventFormParams = {
+      const params: Api['form']['params'] = {
         event_id: '1',
       };
 

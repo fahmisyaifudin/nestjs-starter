@@ -1,13 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Kysely } from 'kysely';
 import { Database } from 'src/database/schema';
-import { EventSingleResponse } from './schema';
+import { Api } from './schema';
 
 @Injectable()
 export class EventRepository {
   constructor(@Inject('Kysely') private db: Kysely<Database>) {}
 
-  async getEventById(id: string): Promise<EventSingleResponse['event']> {
+  async getEventById(id: string): Promise<Api['detail']['response']['event']> {
     const event = await this.db
       .selectFrom('events')
       .where('id', '=', id)
