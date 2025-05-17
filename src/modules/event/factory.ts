@@ -3,7 +3,8 @@ import { Entities } from 'src/database/schema';
 
 const eventFactory = (): Entities['events']['insert'] => {
   return {
-    title: faker.lorem.lines(),
+    id: faker.string.uuid(),
+    title: faker.lorem.sentence(),
     description: faker.lorem.paragraph(),
     start_date: new Date().getTime() - 24 * 60 * 60 * 1000,
     end_date: new Date().getTime() + 24 * 60 * 60 * 1000,
@@ -26,6 +27,7 @@ const eventFormFactory = (overrides: {
     'file',
   ]);
   return {
+    id: faker.string.uuid(),
     event_id: overrides.event_id,
     label: faker.lorem.words(),
     datatype,
@@ -38,7 +40,22 @@ const eventFormFactory = (overrides: {
   };
 };
 
+const eventTicketFactory = (overrides: {
+  event_id: string;
+}): Entities['event_tickets']['insert'] => {
+  return {
+    id: faker.string.uuid(),
+    event_id: overrides.event_id,
+    name: faker.lorem.words(),
+    price: faker.number.int({ min: 10000, max: 100000 }),
+    quota: faker.number.int({ min: 1, max: 100 }),
+    start_date: new Date().getTime() - 24 * 60 * 60 * 1000,
+    end_date: new Date().getTime() + 24 * 60 * 60 * 1000,
+  };
+};
+
 export const factories = {
   events: eventFactory,
   event_form: eventFormFactory,
+  event_ticket: eventTicketFactory,
 };

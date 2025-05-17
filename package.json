@@ -18,7 +18,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/jest/bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "migrate:latest": "ts-node src/database/migration.ts latest",
-    "migrate:rollback": "ts-node src/database/migration.ts rollback"
+    "migrate:rollback": "ts-node src/database/migration.ts rollback",
+    "migrate:seed": "ts-node src/database/seed.ts"
   },
   "engines": {
     "npm": ">=10.0.0",

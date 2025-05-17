@@ -33,8 +33,9 @@ describe('EventRepository', () => {
   });
 
   beforeEach(async () => {
-    await db.deleteFrom('events').execute();
     await db.deleteFrom('event_forms').execute();
+    await db.deleteFrom('event_tickets').execute();
+    await db.deleteFrom('events').execute();
   });
 
   afterAll(async () => {
@@ -49,8 +50,18 @@ describe('EventRepository', () => {
         .returningAll()
         .executeTakeFirstOrThrow();
 
+      await db
+        .insertInto('event_tickets')
+        .values(
+          Array(3)
+            .fill(null)
+            .map(() => factories.event_ticket({ event_id: event.id })),
+        )
+        .execute();
+
       const result = await eventRepository.getEventById(event.id);
       expect(result.id).toEqual(event.id);
+      expect(result.tickets.length).toEqual(3);
       expect(Array.isArray(event.images)).toBe(true);
     });
   });

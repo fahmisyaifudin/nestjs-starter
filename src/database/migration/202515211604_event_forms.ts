@@ -30,4 +30,5 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 export async function down(db: Kysely<any>): Promise<void> {
   await db.schema.dropTable('event_forms').execute();
+  await db.schema.dropType('form_datatype').execute();
 }
