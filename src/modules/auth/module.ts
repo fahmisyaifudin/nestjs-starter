@@ -4,6 +4,7 @@ import { AuthService } from './service';
 import { UserRepository } from './repository';
 import { DatabaseProvider } from '../../provider/database';
 import { JwtModule } from '@nestjs/jwt';
+import 'dotenv/config';
 
 @Module({
   imports: [

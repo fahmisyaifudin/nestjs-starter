@@ -18,7 +18,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/jest/bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "migrate:latest": "ts-node src/database/migration.ts latest",
-    "migrate:rollback": "ts-node src/database/migration.ts rollback"
+    "migrate:rollback": "ts-node src/database/migration.ts rollback",
+    "migrate:seed": "ts-node src/database/seed.ts"
   },
   "engines": {
     "npm": ">=10.0.0",
@@ -41,6 +42,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
+    "@faker-js/faker": "^9.8.0",
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
