@@ -82,4 +82,36 @@ export class AuthService {
       throw new InternalServerErrorException(error.message);
     }
   }
+  async createAnonymous(
+    payload: Omit<RegisterRequest, 'password'>,
+  ): Promise<RegisterResponse> {
+    try {
+      const user = await this.userRepo.getByEmail(payload['email']);
+      if (user) {
+        return {
+          user: {
+            id: user.id,
+            email: user.email,
+            full_name: user.full_name,
+          },
+        };
+      }
+      const anonymousUser = await this.userRepo.createAnonymous({
+        email: payload.email,
+        full_name: payload.full_name,
+      });
+      return {
+        user: {
+          id: anonymousUser.id,
+          email: anonymousUser.email,
+          full_name: anonymousUser.full_name,
+        },
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(error.message);
+    }
+  }
 }

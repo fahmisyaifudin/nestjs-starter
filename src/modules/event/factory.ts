@@ -54,8 +54,52 @@ const eventTicketFactory = (overrides: {
   };
 };
 
+const ticketsFactory = (): Entities['tickets']['insert'] => {
+  return {
+    id: faker.string.uuid(),
+    name: faker.person.fullName(),
+    email: faker.internet.exampleEmail(),
+    code: faker.string.alphanumeric({
+      casing: 'upper',
+      length: { min: 10, max: 10 },
+    }),
+  };
+};
+
+const eventFormTicketFactory = (
+  overrides: Entities['event_form_ticket']['update'],
+): Entities['event_form_ticket']['insert'] => {
+  return {
+    event_form_id: faker.string.uuid(),
+    ticket_id: faker.string.uuid(),
+    value: null,
+    ...overrides,
+  };
+};
+
+const transactionFactory = (
+  overrides: Entities['transactions']['update'],
+): Entities['transactions']['insert'] => {
+  return {
+    id: faker.string.uuid(),
+    event_id: faker.string.uuid(),
+    created_at: new Date().getTime(),
+    updated_at: new Date().getTime(),
+    user_id: faker.string.uuid(),
+    status: 'pending',
+    amount: faker.number.int({ min: 10000, max: 1000000 }),
+    payment_reference: faker.string.alphanumeric({ length: 16 }),
+    payment_url: faker.internet.url(),
+    payment_expired_at: new Date().getTime() + 24 * 60 * 60 * 1000,
+    ...overrides,
+  };
+};
+
 export const factories = {
   events: eventFactory,
   event_form: eventFormFactory,
   event_ticket: eventTicketFactory,
+  tickets: ticketsFactory,
+  event_form_ticket: eventFormTicketFactory,
+  transaction: transactionFactory,
 };

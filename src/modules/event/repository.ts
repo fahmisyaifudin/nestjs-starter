@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Kysely } from 'kysely';
-import { Database } from 'src/database/schema';
+import { Database, Entities } from 'src/database/schema';
 import { Api } from './schema';
 
 @Injectable()
@@ -55,6 +55,24 @@ export class EventRepository {
       .selectFrom('event_forms')
       .where('event_id', '=', event_id)
       .selectAll()
+      .execute();
+  }
+  async storeTicket(
+    payload: Entities['tickets']['insert'][],
+  ): Promise<Database['tickets'][]> {
+    return this.db
+      .insertInto('tickets')
+      .values(payload)
+      .returningAll()
+      .execute();
+  }
+  async storeTicketForm(
+    payload: Entities['event_form_ticket']['insert'][],
+  ): Promise<Database['event_form_ticket'][]> {
+    return this.db
+      .insertInto('event_form_ticket')
+      .values(payload)
+      .returningAll()
       .execute();
   }
 }

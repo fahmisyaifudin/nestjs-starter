@@ -30,4 +30,17 @@ export class UserRepository {
       .returningAll()
       .executeTakeFirstOrThrow();
   }
+  async createAnonymous(
+    payload: Pick<Entities['users']['insert'], 'email' | 'full_name'>,
+  ): Promise<Database['users']> {
+    return this.db
+      .insertInto('users')
+      .values({
+        email: payload.email,
+        full_name: payload.full_name,
+        auth_provider: 'anonymous',
+      })
+      .returningAll()
+      .executeTakeFirstOrThrow();
+  }
 }

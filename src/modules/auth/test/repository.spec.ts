@@ -77,5 +77,19 @@ describe('UserRepository', () => {
         .executeTakeFirstOrThrow();
       expect(Number(count)).toEqual(1);
     });
+    it('should create anonymous user', async () => {
+      const inserted: Entities['users']['insert'] = {
+        email: 'johndoe@mail.com',
+        full_name: 'John Doe',
+      };
+      const result = await userRepository.create(inserted);
+      expect(result.email).toEqual(inserted.email);
+      const { count } = await db
+        .selectFrom('users')
+        .where('email', '=', inserted.email)
+        .select(sql<number>`COUNT(*)`.as('count'))
+        .executeTakeFirstOrThrow();
+      expect(Number(count)).toEqual(1);
+    });
   });
 });

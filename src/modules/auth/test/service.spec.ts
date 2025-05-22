@@ -13,6 +13,7 @@ describe('AuthService', () => {
   const mockUserRepository = {
     getByEmail: jest.fn(),
     create: jest.fn(),
+    createAnonymous: jest.fn(),
   };
 
   const mockJwtService = {
@@ -167,6 +168,52 @@ describe('AuthService', () => {
         registerRequest.email,
       );
       expect(userRepository.create).not.toHaveBeenCalled();
+    });
+
+    it('should successfully create anonymous user', async () => {
+      // Arrange
+      mockUserRepository.getByEmail.mockResolvedValue(null);
+      mockUserRepository.createAnonymous.mockResolvedValue(mockUser);
+
+      const anonymousRegister = {
+        email: 'michael@yoloo.co.id',
+        full_name: 'Michael Kaiser',
+      };
+      //Act & Assert
+      const result = await service.createAnonymous(anonymousRegister);
+      expect(userRepository.getByEmail).toHaveBeenCalledWith(
+        anonymousRegister.email,
+      );
+      expect(userRepository.createAnonymous).toHaveBeenCalledWith(
+        anonymousRegister,
+      );
+      expect(result).toEqual({
+        user: {
+          id: mockUser.id,
+          email: mockUser.email,
+          full_name: mockUser.full_name,
+        },
+      });
+    });
+    it('should not create anonymous user but still return existing user if exists', async () => {
+      // Arrange
+      mockUserRepository.getByEmail.mockResolvedValue(mockUser);
+      const anonymousRegister = {
+        email: 'michael@yoloo.co.id',
+        full_name: 'Michael Kaiser',
+      };
+
+      const result = await service.createAnonymous(anonymousRegister);
+      expect(userRepository.getByEmail).toHaveBeenCalledWith(
+        anonymousRegister.email,
+      );
+      expect(result).toEqual({
+        user: {
+          id: mockUser.id,
+          email: mockUser.email,
+          full_name: mockUser.full_name,
+        },
+      });
     });
   });
 });
