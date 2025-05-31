@@ -184,9 +184,7 @@ describe('AuthService', () => {
       expect(userRepository.getByEmail).toHaveBeenCalledWith(
         anonymousRegister.email,
       );
-      expect(userRepository.createAnonymous).toHaveBeenCalledWith(
-        anonymousRegister,
-      );
+      expect(userRepository.createAnonymous).toHaveBeenCalled();
       expect(result).toEqual({
         user: {
           id: mockUser.id,

@@ -3,6 +3,7 @@ import { EventService } from '../service';
 import { EventRepository } from '../repository';
 import { factories } from '../factory';
 import { Api } from '../schema';
+import { AuthService } from '../../auth/service';
 
 describe('EventService', () => {
   let service: EventService;
@@ -14,6 +15,10 @@ describe('EventService', () => {
     getEventForm: jest.fn(),
   };
 
+  const mockAuthService = {
+    createAnonymous: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -21,6 +26,10 @@ describe('EventService', () => {
         {
           provide: EventRepository,
           useValue: mockEventRepository,
+        },
+        {
+          provide: AuthService,
+          useValue: mockAuthService,
         },
       ],
     }).compile();

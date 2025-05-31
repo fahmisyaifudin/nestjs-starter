@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Kysely } from 'kysely';
+import { Kysely, sql, Transaction } from 'kysely';
 import { Database, Entities } from 'src/database/schema';
 import { Api } from './schema';
 
@@ -7,6 +7,9 @@ import { Api } from './schema';
 export class EventRepository {
   constructor(@Inject('Kysely') private db: Kysely<Database>) {}
 
+  getDB(): Kysely<Database> {
+    return this.db;
+  }
   async getEventById(id: string): Promise<Api['detail']['response']['event']> {
     const event = await this.db
       .selectFrom('events')
@@ -59,20 +62,47 @@ export class EventRepository {
   }
   async storeTicket(
     payload: Entities['tickets']['insert'][],
+    trx?: Transaction<Database>,
   ): Promise<Database['tickets'][]> {
-    return this.db
-      .insertInto('tickets')
-      .values(payload)
-      .returningAll()
-      .execute();
+    const query = trx || this.db;
+    return query.insertInto('tickets').values(payload).returningAll().execute();
   }
   async storeTicketForm(
     payload: Entities['event_form_ticket']['insert'][],
+    trx?: Transaction<Database>,
   ): Promise<Database['event_form_ticket'][]> {
-    return this.db
+    const query = trx || this.db;
+    return query
       .insertInto('event_form_ticket')
       .values(payload)
       .returningAll()
       .execute();
+  }
+  async storeTransaction(
+    payload: Entities['transactions']['insert'],
+    trx?: Transaction<Database>,
+  ): Promise<Database['transactions']> {
+    const query = trx || this.db;
+    return query
+      .insertInto('transactions')
+      .values(payload)
+      .returningAll()
+      .executeTakeFirstOrThrow();
+  }
+  async getAmountOfTickets(
+    ticketIds: string[],
+  ): Promise<{ amount: number; event_id: string }> {
+    return this.db
+      .selectFrom('event_tickets')
+      .where('id', 'in', ticketIds)
+      .select([sql<number>`SUM(price)`.as('amount'), 'event_id'])
+      .groupBy('event_id')
+      .execute()
+      .then((result) => {
+        return {
+          amount: result[0]?.amount ?? 0,
+          event_id: result[0]?.event_id ?? '',
+        };
+      });
   }
 }

@@ -46,11 +46,11 @@ export const ApiSchema = {
   },
   register: {
     body: Type.Object({
-      email: Type.Optional(Type.String()),
-      name: Type.Optional(Type.String()),
+      email: Type.String(),
+      name: Type.String(),
       tickets: Type.Array(
         Type.Intersect([
-          Type.Pick(TicketSchema, ['email', 'name']),
+          Type.Pick(TicketSchema, ['email', 'name', 'event_ticket_id']),
           Type.Object({
             forms: Type.Array(
               Type.Pick(EventFormTicketSchema, ['event_form_id', 'value']),
