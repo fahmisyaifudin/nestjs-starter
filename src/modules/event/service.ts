@@ -8,6 +8,7 @@ import { Api } from './schema';
 import { EventRepository } from './repository';
 import { AuthService } from '../auth/service';
 import { Entities } from 'src/database/schema';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class EventService {
@@ -67,21 +68,22 @@ export class EventService {
     }
   }
   async register(
+    event_id: string,
     body: Api['register']['body'],
   ): Promise<Api['register']['response']> {
     try {
       const db = this.eventRepo.getDB();
-      let insertForm: Entities['event_form_ticket']['insert'][];
+      const insertForm: Entities['event_form_tickets']['insert'][] = [];
       const ticket: Entities['tickets']['insert'][] = body.tickets.map(
         (ticket) => {
           const ticketId = crypto.randomUUID();
-          const form: Entities['event_form_ticket']['insert'][] =
+          const form: Entities['event_form_tickets']['insert'][] =
             ticket.forms.map((form) => ({
               ticket_id: ticketId,
               event_form_id: form.event_form_id,
               value: form.value,
             }));
-          insertForm.push(form);
+          insertForm.push(...form);
 
           return {
             id: ticketId,
@@ -111,15 +113,17 @@ export class EventService {
           );
           const insertedTicket = await this.eventRepo.storeTicket(ticket, trx);
           await this.eventRepo.storeTicketForm(insertForm, trx);
-          const { payment_url } = await this.eventRepo.storeTransaction({
-            event_id: totalAmount.event_id,
-            user_id: user.user.id,
-            status: totalAmount.amount > 0 ? 'pending' : 'success',
-            amount: totalAmount.amount,
-            payment_url: '',
-            payment_expired_at:
-              totalAmount.amount > 0 ? Date.now() + 900000 : null, // 15 minutes later
-          });
+          const { payment_url } = await this.eventRepo.storeTransaction(
+            {
+              event_id,
+              user_id: user.user.id,
+              status: totalAmount > 0 ? 'pending' : 'success',
+              amount: totalAmount,
+              payment_url: '',
+              payment_expired_at: totalAmount > 0 ? Date.now() + 900000 : null, // 15 minutes later
+            },
+            trx,
+          );
           return { insertedTicket, payment_url };
         });
 
@@ -128,6 +132,7 @@ export class EventService {
         payment_url,
       };
     } catch (error) {
+      console.log(error);
       throw new InternalServerErrorException(error.message);
     }
   }

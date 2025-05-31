@@ -4,10 +4,10 @@ import { EventService } from './service';
 import { EventRepository } from './repository';
 import { DatabaseProvider } from '../../provider/database';
 import 'dotenv/config';
-import { AuthService } from '../auth/service';
+import { AuthModule } from '../auth/module';
 
 @Module({
-  imports: [AuthService],
+  imports: [AuthModule],
   controllers: [EventController],
   providers: [EventService, EventRepository, DatabaseProvider],
   exports: [EventService],

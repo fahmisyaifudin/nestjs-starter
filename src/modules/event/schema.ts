@@ -45,6 +45,9 @@ export const ApiSchema = {
     }),
   },
   register: {
+    params: Type.Object({
+      event_id: Type.String(),
+    }),
     body: Type.Object({
       email: Type.String(),
       name: Type.String(),

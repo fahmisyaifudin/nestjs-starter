@@ -22,7 +22,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('amount', 'double precision', (col) => col.notNull())
     .addColumn('payment_reference', 'varchar(255)')
     .addColumn('payment_url', 'text')
-    .addColumn('payment_expired_at', 'timestamp')
+    .addColumn('payment_expired_at', 'bigint')
     .addColumn('created_at', 'bigint', (col) =>
       col.defaultTo(sql`EXTRACT(EPOCH FROM NOW()) * 1000`).notNull(),
     )

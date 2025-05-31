@@ -126,12 +126,11 @@ describe('EventRepository', () => {
       const result = await eventRepository.getAmountOfTickets(
         eventTicket.map((ticket) => ticket.id),
       );
-      expect(result.amount).toEqual(
+      expect(result).toEqual(
         eventTicket.reduce((acc, ticket) => {
           return acc + ticket.price;
         }, 0),
       );
-      expect(result.event_id).toEqual(event.id);
     });
   });
 

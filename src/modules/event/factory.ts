@@ -14,9 +14,9 @@ const eventFactory = (): Entities['events']['insert'] => {
   };
 };
 
-const eventFormFactory = (overrides: {
-  event_id: string;
-}): Entities['event_forms']['insert'] => {
+const eventFormFactory = (
+  overrides: Entities['event_forms']['update'],
+): Entities['event_forms']['insert'] => {
   const datatype = faker.helpers.arrayElement([
     'text',
     'number',
@@ -37,12 +37,13 @@ const eventFormFactory = (overrides: {
             faker.lorem.word(),
           )
         : null,
+    ...overrides,
   };
 };
 
-const eventTicketFactory = (overrides: {
-  event_id: string;
-}): Entities['event_tickets']['insert'] => {
+const eventTicketFactory = (
+  overrides: Entities['event_tickets']['update'],
+): Entities['event_tickets']['insert'] => {
   return {
     id: faker.string.uuid(),
     event_id: overrides.event_id,
@@ -51,6 +52,7 @@ const eventTicketFactory = (overrides: {
     quota: faker.number.int({ min: 1, max: 100 }),
     start_date: new Date().getTime() - 24 * 60 * 60 * 1000,
     end_date: new Date().getTime() + 24 * 60 * 60 * 1000,
+    ...overrides,
   };
 };
 
@@ -67,8 +69,8 @@ const ticketsFactory = (): Entities['tickets']['insert'] => {
 };
 
 const eventFormTicketFactory = (
-  overrides: Entities['event_form_ticket']['update'],
-): Entities['event_form_ticket']['insert'] => {
+  overrides: Entities['event_form_tickets']['update'],
+): Entities['event_form_tickets']['insert'] => {
   return {
     event_form_id: faker.string.uuid(),
     ticket_id: faker.string.uuid(),

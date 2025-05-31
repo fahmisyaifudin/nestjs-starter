@@ -7,7 +7,7 @@ export interface Database {
   event_forms: EventFormTable;
   event_tickets: EventTicketTable;
   tickets: TicketTable;
-  event_form_ticket: EventFormTicketTable;
+  event_form_tickets: EventFormTicketTable;
   transactions: TransactionTable;
 }
 

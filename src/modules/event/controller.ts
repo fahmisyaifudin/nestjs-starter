@@ -1,4 +1,12 @@
-import { Controller, Get, Query, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  Param,
+  Post,
+  Body,
+  HttpCode,
+} from '@nestjs/common';
 import { EventService } from './service';
 import { Api, ApiSchema } from './schema';
 import { ValidationPipe } from '../../pipe/validation';
@@ -27,5 +35,15 @@ export class EventController {
     params: Api['form']['params'],
   ) {
     return this.eventService.getForm(params);
+  }
+  @Post(':event_id/register')
+  @HttpCode(201)
+  async register(
+    @Param(new ValidationPipe(ApiSchema['register']['params']))
+    params: Api['register']['params'],
+    @Body(new ValidationPipe(ApiSchema['register']['body']))
+    body: Api['register']['body'],
+  ) {
+    return this.eventService.register(params.event_id, body);
   }
 }

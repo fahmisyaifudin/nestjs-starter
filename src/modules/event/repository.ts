@@ -68,12 +68,12 @@ export class EventRepository {
     return query.insertInto('tickets').values(payload).returningAll().execute();
   }
   async storeTicketForm(
-    payload: Entities['event_form_ticket']['insert'][],
+    payload: Entities['event_form_tickets']['insert'][],
     trx?: Transaction<Database>,
-  ): Promise<Database['event_form_ticket'][]> {
+  ): Promise<Database['event_form_tickets'][]> {
     const query = trx || this.db;
     return query
-      .insertInto('event_form_ticket')
+      .insertInto('event_form_tickets')
       .values(payload)
       .returningAll()
       .execute();
@@ -89,20 +89,14 @@ export class EventRepository {
       .returningAll()
       .executeTakeFirstOrThrow();
   }
-  async getAmountOfTickets(
-    ticketIds: string[],
-  ): Promise<{ amount: number; event_id: string }> {
+  async getAmountOfTickets(ticketIds: string[]): Promise<number> {
     return this.db
       .selectFrom('event_tickets')
       .where('id', 'in', ticketIds)
-      .select([sql<number>`SUM(price)`.as('amount'), 'event_id'])
-      .groupBy('event_id')
+      .select([sql<number>`SUM(price)`.as('amount')])
       .execute()
       .then((result) => {
-        return {
-          amount: result[0]?.amount ?? 0,
-          event_id: result[0]?.event_id ?? '',
-        };
+        return result[0]?.amount ?? 0;
       });
   }
 }
