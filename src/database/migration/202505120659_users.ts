@@ -3,14 +3,16 @@ import { Kysely, sql } from 'kysely';
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createType('auth_provider')
-    .asEnum(['google', 'email'])
+    .asEnum(['google', 'email', 'anonymous'])
     .execute();
 
   await db.schema
     .createTable('users')
-    .addColumn('id', 'uuid', (col) => col.defaultTo(sql`gen_random_uuid()`))
+    .addColumn('id', 'uuid', (col) =>
+      col.primaryKey().defaultTo(sql`gen_random_uuid()`),
+    )
     .addColumn('email', 'varchar(255)', (col) => col.notNull().unique())
-    .addColumn('password_hash', 'varchar(255)', (col) => col.notNull())
+    .addColumn('password_hash', 'varchar(255)')
     .addColumn('full_name', 'varchar(255)', (col) => col.notNull())
     .addColumn('auth_provider', sql`auth_provider`, (col) =>
       col.notNull().defaultTo('email'),

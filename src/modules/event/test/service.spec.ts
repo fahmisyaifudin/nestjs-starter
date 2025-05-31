@@ -2,7 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { EventService } from '../service';
 import { EventRepository } from '../repository';
 import { factories } from '../factory';
-import { EventQuery } from '../schema';
+import { Api } from '../schema';
+import { AuthService } from '../../auth/service';
+import { InternalServerErrorException } from '@nestjs/common';
 
 describe('EventService', () => {
   let service: EventService;
@@ -12,6 +14,25 @@ describe('EventService', () => {
     getEventById: jest.fn(),
     getActiveEvents: jest.fn(),
     getEventForm: jest.fn(),
+    getDB: jest.fn(() => ({
+      transaction: jest.fn(() => mockDbTransaction),
+    })),
+    getAmountOfTickets: jest.fn(),
+    storeTicket: jest.fn(),
+    storeTicketForm: jest.fn(),
+    storeTransaction: jest.fn(),
+  };
+
+  const mockDbTransaction = {
+    execute: jest.fn(async (callback) => {
+      const mockTrx = {};
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      return await callback(mockTrx);
+    }),
+  };
+
+  const mockAuthService = {
+    createAnonymous: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -21,6 +42,10 @@ describe('EventService', () => {
         {
           provide: EventRepository,
           useValue: mockEventRepository,
+        },
+        {
+          provide: AuthService,
+          useValue: mockAuthService,
         },
       ],
     }).compile();
@@ -41,7 +66,7 @@ describe('EventService', () => {
     it('should successfully get event', async () => {
       // Arrange
       mockEventRepository.getActiveEvents.mockResolvedValue(mockEvents);
-      const query: EventQuery = {
+      const query: Api['get']['query'] = {
         start_date: 0,
         end_date: new Date().getTime(),
         page: 1,
@@ -122,6 +147,172 @@ describe('EventService', () => {
       // Act & Assert
       expect(result).toEqual({ forms: [] });
       expect(eventRepository.getEventForm).toHaveBeenCalledWith('999');
+    });
+  });
+
+  describe('register', () => {
+    const mockApiRegisterBody: Api['register']['body'] = {
+      email: 'test@example.com',
+      name: 'John Doe',
+      tickets: [
+        {
+          event_ticket_id: 'evt_tkt_1',
+          name: 'Attendee 1',
+          email: 'attendee1@example.com',
+          forms: [
+            { event_form_id: 'form_1', value: 'value_1' },
+            { event_form_id: 'form_2', value: 'value_2' },
+          ],
+        },
+        {
+          event_ticket_id: 'evt_tkt_2',
+          name: 'Attendee 2',
+          email: 'attendee2@example.com',
+          forms: [{ event_form_id: 'form_3', value: 'value_3' }],
+        },
+      ],
+    };
+
+    const mockUserUUID = 'user-uuid-1';
+    const mockPaymentUrl = 'http://mock-payment-url.com';
+    const mockEventId = 'event-id-1';
+    beforeEach(() => {
+      mockEventRepository.getAmountOfTickets.mockResolvedValue(10000);
+
+      mockAuthService.createAnonymous.mockResolvedValue({
+        user: { id: mockUserUUID },
+      });
+
+      mockEventRepository.storeTicket.mockResolvedValue([
+        { id: expect.any(String), code: expect.any(String) },
+        { id: expect.any(String), code: expect.any(String) },
+      ]);
+
+      mockEventRepository.storeTicketForm.mockResolvedValue({});
+      mockEventRepository.storeTransaction.mockResolvedValue({
+        payment_url: mockPaymentUrl,
+      });
+    });
+    it('should successfully register tickets and return payment URL for pending payment', async () => {
+      const result = await service.register(mockEventId, mockApiRegisterBody);
+
+      expect(mockEventRepository.getAmountOfTickets).toHaveBeenCalledWith([
+        'evt_tkt_1',
+        'evt_tkt_2',
+      ]);
+
+      expect(mockEventRepository.getDB).toHaveBeenCalled();
+
+      expect(mockAuthService.createAnonymous).toHaveBeenCalledWith(
+        {
+          email: mockApiRegisterBody.email,
+          full_name: mockApiRegisterBody.name,
+        },
+        {},
+      );
+
+      expect(mockEventRepository.storeTicket).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: expect.any(String),
+            name: mockApiRegisterBody.tickets[0].name,
+            email: mockApiRegisterBody.tickets[0].email,
+            event_ticket_id: mockApiRegisterBody.tickets[0].event_ticket_id,
+            code: expect.any(String),
+          }),
+          expect.objectContaining({
+            id: expect.any(String),
+            name: mockApiRegisterBody.tickets[1].name,
+            email: mockApiRegisterBody.tickets[1].email,
+            event_ticket_id: mockApiRegisterBody.tickets[1].event_ticket_id,
+            code: expect.any(String),
+          }),
+        ]),
+        {},
+      );
+
+      expect(mockEventRepository.storeTicketForm).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            ticket_id: expect.any(String),
+            event_form_id: 'form_1',
+            value: 'value_1',
+          }),
+          expect.objectContaining({
+            ticket_id: expect.any(String),
+            event_form_id: 'form_2',
+            value: 'value_2',
+          }),
+          expect.objectContaining({
+            ticket_id: expect.any(String),
+            event_form_id: 'form_3',
+            value: 'value_3',
+          }),
+        ]),
+        {},
+      );
+
+      expect(mockEventRepository.storeTransaction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event_id: mockEventId,
+          user_id: mockUserUUID,
+          status: 'pending',
+          amount: 10000,
+          payment_url: '',
+          payment_expired_at: expect.any(Number),
+        }),
+        {},
+      );
+
+      expect(result).toEqual({
+        tickets: expect.arrayContaining([
+          expect.objectContaining({
+            id: expect.any(String),
+            code: expect.any(String),
+          }),
+          expect.objectContaining({
+            id: expect.any(String),
+            code: expect.any(String),
+          }),
+        ]),
+        payment_url: mockPaymentUrl,
+      });
+    });
+
+    it('should successfully register tickets and return no payment URL for free event', async () => {
+      mockEventRepository.getAmountOfTickets.mockResolvedValue(0);
+
+      mockEventRepository.storeTransaction.mockResolvedValue({
+        payment_url: '',
+      });
+
+      const result = await service.register(mockEventId, mockApiRegisterBody);
+
+      expect(mockEventRepository.storeTransaction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'success',
+          amount: 0,
+          payment_expired_at: null,
+        }),
+        {},
+      );
+
+      expect(result).toEqual({
+        tickets: expect.any(Array),
+        payment_url: '',
+      });
+    });
+    it('should throw InternalServerErrorException if any operation fails', async () => {
+      mockAuthService.createAnonymous.mockRejectedValue(
+        new Error('Auth error'),
+      );
+
+      await expect(
+        service.register(mockEventId, mockApiRegisterBody),
+      ).rejects.toThrow(InternalServerErrorException);
+      await expect(
+        service.register(mockEventId, mockApiRegisterBody),
+      ).rejects.toThrow('Auth error');
     });
   });
 });

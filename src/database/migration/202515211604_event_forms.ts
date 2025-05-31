@@ -26,6 +26,12 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('datatype', sql.raw('form_datatype'), (col) => col.notNull())
     .addColumn('options', sql.raw('text[]'))
     .execute();
+
+  await db.schema
+    .createIndex('idx_event_form_event_id')
+    .on('event_forms')
+    .column('event_id')
+    .execute();
 }
 
 export async function down(db: Kysely<any>): Promise<void> {

@@ -14,6 +14,8 @@ import {
 } from './schema';
 import { UserRepository } from './repository';
 import * as bcrypt from 'bcryptjs';
+import { Transaction } from 'kysely';
+import { Database } from 'src/database/schema';
 
 @Injectable()
 export class AuthService {
@@ -73,6 +75,42 @@ export class AuthService {
           id: user.id,
           email: user.email,
           full_name: user.full_name,
+        },
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+  async createAnonymous(
+    payload: Omit<RegisterRequest, 'password'>,
+    trx?: Transaction<Database>,
+  ): Promise<RegisterResponse> {
+    try {
+      const user = await this.userRepo.getByEmail(payload['email']);
+      if (user) {
+        return {
+          user: {
+            id: user.id,
+            email: user.email,
+            full_name: user.full_name,
+          },
+        };
+      }
+      const anonymousUser = await this.userRepo.createAnonymous(
+        {
+          email: payload.email,
+          full_name: payload.full_name,
+        },
+        trx,
+      );
+      return {
+        user: {
+          id: anonymousUser.id,
+          email: anonymousUser.email,
+          full_name: anonymousUser.full_name,
         },
       };
     } catch (error) {

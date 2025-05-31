@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Kysely } from 'kysely';
+import { Kysely, Transaction } from 'kysely';
 import { Database, Entities } from 'src/database/schema';
 
 @Injectable()
@@ -26,6 +26,21 @@ export class UserRepository {
         is_email_verified: payload.is_email_verified,
         email_verification_token: payload.email_verification_token,
         email_verification_expires_at: payload.email_verification_expires_at,
+      })
+      .returningAll()
+      .executeTakeFirstOrThrow();
+  }
+  async createAnonymous(
+    payload: Pick<Entities['users']['insert'], 'email' | 'full_name'>,
+    trx?: Transaction<Database>,
+  ): Promise<Database['users']> {
+    const query = trx || this.db;
+    return query
+      .insertInto('users')
+      .values({
+        email: payload.email,
+        full_name: payload.full_name,
+        auth_provider: 'anonymous',
       })
       .returningAll()
       .executeTakeFirstOrThrow();

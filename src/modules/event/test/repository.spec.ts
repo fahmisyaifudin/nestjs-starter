@@ -107,6 +107,33 @@ describe('EventRepository', () => {
     });
   });
 
+  describe('get amount of tickets', () => {
+    it('should return amount of tickets by event id', async () => {
+      const event = await db
+        .insertInto('events')
+        .values(factories.events())
+        .returningAll()
+        .executeTakeFirstOrThrow();
+      const eventTicket = await db
+        .insertInto('event_tickets')
+        .values(
+          Array(3)
+            .fill(null)
+            .map(() => factories.event_ticket({ event_id: event.id })),
+        )
+        .returning(['id', 'price'])
+        .execute();
+      const result = await eventRepository.getAmountOfTickets(
+        eventTicket.map((ticket) => ticket.id),
+      );
+      expect(result).toEqual(
+        eventTicket.reduce((acc, ticket) => {
+          return acc + ticket.price;
+        }, 0),
+      );
+    });
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
