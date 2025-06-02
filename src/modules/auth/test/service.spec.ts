@@ -4,11 +4,13 @@ import { AuthService } from '../service';
 import { UserRepository } from '../repository';
 import { LoginRequest } from '../schema';
 import * as bcrypt from 'bcryptjs';
+import { EmailQueueService } from '../../email/queue.service';
 
 describe('AuthService', () => {
   let service: AuthService;
   let userRepository: UserRepository;
   let jwtService: JwtService;
+  let emailQueueService: EmailQueueService;
 
   const mockUserRepository = {
     getByEmail: jest.fn(),
@@ -18,6 +20,10 @@ describe('AuthService', () => {
 
   const mockJwtService = {
     signAsync: jest.fn(),
+  };
+
+  const mockEmailQueueService = {
+    queueVerificationEmail: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -32,12 +38,17 @@ describe('AuthService', () => {
           provide: JwtService,
           useValue: mockJwtService,
         },
+        {
+          provide: EmailQueueService,
+          useValue: mockEmailQueueService,
+        },
       ],
     }).compile();
 
     service = module.get<AuthService>(AuthService);
     userRepository = module.get<UserRepository>(UserRepository);
     jwtService = module.get<JwtService>(JwtService);
+    emailQueueService = module.get<EmailQueueService>(EmailQueueService);
   });
 
   afterEach(() => {
@@ -124,6 +135,8 @@ describe('AuthService', () => {
       id: '1',
       email: 'test@example.com',
       password_hash: bcrypt.hashSync('password123'),
+      email_verification_token: 'verification-token',
+      email_verification_expires_at: Date.now() + 3600000,
       full_name: 'Test User',
     };
 
@@ -131,6 +144,7 @@ describe('AuthService', () => {
       // Arrange
       mockUserRepository.getByEmail.mockResolvedValue(null);
       mockUserRepository.create.mockResolvedValue(mockUser);
+      mockEmailQueueService.queueVerificationEmail.mockResolvedValue(true);
 
       // Act
       const result = await service.register(registerRequest);
@@ -146,6 +160,11 @@ describe('AuthService', () => {
         email_verification_expires_at: expect.any(Number),
         email_verification_token: expect.any(String),
         auth_provider: expect.any(String),
+      });
+      expect(emailQueueService.queueVerificationEmail).toHaveBeenCalledWith({
+        to: mockUser.email,
+        toName: mockUser.full_name,
+        code: mockUser.email_verification_token,
       });
       expect(result).toEqual({
         user: {

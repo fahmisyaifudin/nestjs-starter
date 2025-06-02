@@ -5,6 +5,7 @@ import { UserRepository } from './repository';
 import { DatabaseProvider } from '../../provider/database';
 import { JwtModule } from '@nestjs/jwt';
 import 'dotenv/config';
+import { EmailModule } from '../email/module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import 'dotenv/config';
       secret: process.env['JWT_SECRET'],
       signOptions: { expiresIn: '1h' },
     }),
+    EmailModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, UserRepository, DatabaseProvider],
