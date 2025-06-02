@@ -10,18 +10,28 @@ import { AuthModule } from './modules/auth/module';
 import { ConfigModule } from '@nestjs/config';
 import { JwtMiddleware } from './middleware/jwt';
 import { EventModule } from './modules/event/modules';
+import { BullModule } from '@nestjs/bullmq';
+import { EmailModule } from './modules/email/module';
+import { EmailProcessor } from './modules/email/processor';
 
 @Module({
   imports: [
     AuthModule,
     EventModule,
+    EmailModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
     }),
+    BullModule.forRoot({
+      connection: {
+        host: '127.0.0.1',
+        port: 6379,
+      },
+    }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, EmailProcessor],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

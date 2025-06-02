@@ -5,9 +5,10 @@ import { EventRepository } from './repository';
 import { DatabaseProvider } from '../../provider/database';
 import 'dotenv/config';
 import { AuthModule } from '../auth/module';
+import { EmailModule } from '../email/module';
 
 @Module({
-  imports: [AuthModule],
+  imports: [AuthModule, EmailModule],
   controllers: [EventController],
   providers: [EventService, EventRepository, DatabaseProvider],
   exports: [EventService],

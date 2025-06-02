@@ -44,9 +44,9 @@ describe('Auth Module (e2e)', () => {
 
   it('POST /auth/register', async () => {
     const register: RegisterRequest = {
-      email: 'test@example.com',
+      email: 'fahmi@ekan.id',
       password: 'Password123',
-      full_name: 'Test User',
+      full_name: 'Fahmi Syaifudin',
     };
 
     const post = await request(app.getHttpServer())

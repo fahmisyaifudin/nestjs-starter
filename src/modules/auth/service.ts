@@ -16,12 +16,14 @@ import { UserRepository } from './repository';
 import * as bcrypt from 'bcryptjs';
 import { Transaction } from 'kysely';
 import { Database } from 'src/database/schema';
+import { EmailQueueService } from '../email/queue.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
     private userRepo: UserRepository,
+    private emailQueueService: EmailQueueService,
   ) {}
 
   async login(payload: LoginRequest): Promise<LoginResponse> {
@@ -70,6 +72,14 @@ export class AuthService {
         email_verification_expires_at: new Date().getTime() + 60 * 60 * 1000, // 60 minutes expired
         auth_provider: 'email',
       });
+
+      // Send verification email
+      await this.emailQueueService.queueVerificationEmail({
+        to: user.email,
+        toName: user.full_name,
+        code: user.email_verification_token,
+      });
+
       return {
         user: {
           id: user.id,
