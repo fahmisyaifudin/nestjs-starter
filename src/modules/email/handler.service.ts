@@ -12,7 +12,6 @@ export class EmailHandlerService {
   ) {
     const defaultFromEmail = this.configService.get<string>(
       'MAILERSEND_FROM_EMAIL',
-      'MS_H0GUfO@test-68zxl27pm5e4j905.mlsender.net',
     );
     const defaultFromName = this.configService.get<string>(
       'MAILERSEND_FROM_NAME',

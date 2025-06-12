@@ -3,7 +3,7 @@ import { Kysely, sql } from 'kysely';
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createType('transaction_status')
-    .asEnum(['pending', 'paid', 'cancelled', 'expired'])
+    .asEnum(['pending', 'success', 'failed', 'expired'])
     .execute();
 
   // Create the transactions table
