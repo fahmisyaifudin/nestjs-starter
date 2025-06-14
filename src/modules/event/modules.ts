@@ -6,9 +6,10 @@ import { DatabaseProvider } from '../../provider/database';
 import 'dotenv/config';
 import { AuthModule } from '../auth/module';
 import { EmailModule } from '../email/module';
+import { PaymentModule } from '../payment/module';
 
 @Module({
-  imports: [AuthModule, EmailModule],
+  imports: [AuthModule, EmailModule, PaymentModule],
   controllers: [EventController],
   providers: [EventService, EventRepository, DatabaseProvider],
   exports: [EventService],

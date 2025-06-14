@@ -49,23 +49,17 @@ const qrCodeSimulatedFactory = (
 const transactionFactory = (
   overrides?: Partial<TransactionTable>,
 ): TransactionTable => {
-  const defaultValues = {
+  return {
     id: faker.string.uuid(),
     event_id: faker.string.uuid(),
     user_id: faker.string.uuid(),
     status: 'success' as TransactionTable['status'],
     amount: faker.number.int({ min: 1000, max: 1000000 }),
-    payment_reference: faker.helpers.maybe(() => faker.string.alphanumeric(16)),
-    payment_url: faker.helpers.maybe(() => faker.internet.url()),
-    payment_expired_at: faker.helpers.maybe(() =>
-      faker.date.future().getTime(),
-    ),
+    payment_reference: faker.string.alphanumeric(16),
+    payment_url: faker.internet.url(),
+    payment_expired_at: faker.date.future().getTime(),
     created_at: faker.date.past().getTime(),
     updated_at: faker.date.recent().getTime(),
-  };
-
-  return {
-    ...defaultValues,
     ...overrides,
   };
 };

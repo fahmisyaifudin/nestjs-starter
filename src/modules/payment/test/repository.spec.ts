@@ -12,8 +12,6 @@ import { HttpService } from '@nestjs/axios';
 describe('PaymentRepository', () => {
   let paymentRepository: PaymentRepository;
   let db: Kysely<Database>;
-  let userId: string;
-  let eventId: string;
 
   beforeAll(async () => {
     const mockHttpService = {
@@ -44,10 +42,14 @@ describe('PaymentRepository', () => {
     paymentRepository = moduleRef.get<PaymentRepository>(PaymentRepository);
   });
 
-  beforeEach(async () => {
+  afterEach(async () => {
     await db.deleteFrom('transactions').execute();
-    await db.deleteFrom('events').where('id', '=', eventId).execute();
-    await db.deleteFrom('users').where('id', '=', userId).execute();
+    await db.deleteFrom('event_form_tickets').execute();
+    await db.deleteFrom('tickets').execute();
+    await db.deleteFrom('event_tickets').execute();
+    await db.deleteFrom('event_forms').execute();
+    await db.deleteFrom('events').execute();
+    await db.deleteFrom('users').execute();
   });
 
   afterAll(async () => {
@@ -61,20 +63,23 @@ describe('PaymentRepository', () => {
         .values(eventFactories.events())
         .returningAll()
         .executeTakeFirstOrThrow();
-      eventId = event.id;
 
       const user = await db
         .insertInto('users')
         .values(authFactories.users())
         .returningAll()
         .executeTakeFirstOrThrow();
-      userId = user.id;
 
-      const mockTransaction = factories.transaction({
-        event_id: event.id,
-        user_id: user.id,
-      });
-      await db.insertInto('transactions').values(mockTransaction).execute();
+      const mockTransaction = await db
+        .insertInto('transactions')
+        .values(
+          factories.transaction({
+            event_id: event.id,
+            user_id: user.id,
+          }),
+        )
+        .returningAll()
+        .executeTakeFirstOrThrow();
 
       const result = await paymentRepository.getTransactionPayment(
         mockTransaction.payment_reference,
@@ -100,20 +105,22 @@ describe('PaymentRepository', () => {
         .values(eventFactories.events())
         .returningAll()
         .executeTakeFirstOrThrow();
-      eventId = event.id;
-
       const user = await db
         .insertInto('users')
         .values(authFactories.users())
         .returningAll()
         .executeTakeFirstOrThrow();
-      userId = user.id;
 
-      const mockTransaction = factories.transaction({
-        event_id: event.id,
-        user_id: user.id,
-      });
-      await db.insertInto('transactions').values(mockTransaction).execute();
+      const mockTransaction = await db
+        .insertInto('transactions')
+        .values(
+          factories.transaction({
+            event_id: event.id,
+            user_id: user.id,
+          }),
+        )
+        .returningAll()
+        .executeTakeFirstOrThrow();
 
       const result = await paymentRepository.updateTransactionStatus(
         mockTransaction.id,
