@@ -4,6 +4,7 @@ import { Kysely, PostgresDialect, sql } from 'kysely';
 import { Pool } from 'pg';
 import { Database, Entities } from 'src/database/schema';
 import 'dotenv/config';
+import { factories } from '../factory';
 
 describe('UserRepository', () => {
   let userRepository: UserRepository;
@@ -31,12 +32,17 @@ describe('UserRepository', () => {
     userRepository = moduleRef.get<UserRepository>(UserRepository);
   });
 
-  beforeEach(async () => {
+  afterEach(async () => {
+    await db.deleteFrom('transactions').execute();
+    await db.deleteFrom('event_form_tickets').execute();
+    await db.deleteFrom('tickets').execute();
+    await db.deleteFrom('event_tickets').execute();
+    await db.deleteFrom('event_forms').execute();
+    await db.deleteFrom('events').execute();
     await db.deleteFrom('users').execute();
   });
 
   afterAll(async () => {
-    await db.deleteFrom('users').execute();
     await db.destroy();
   });
 
@@ -44,13 +50,7 @@ describe('UserRepository', () => {
     it('should return empty array when no users exist', async () => {
       const user = await db
         .insertInto('users')
-        .values({
-          email: 'johndoe@mail.com',
-          password_hash: 'hashedpassword123',
-          full_name: 'John Doe',
-          auth_provider: 'email',
-          is_email_verified: false,
-        })
+        .values(factories.users())
         .returningAll()
         .executeTakeFirstOrThrow();
       const result = await userRepository.getByEmail(user.email);
@@ -59,15 +59,7 @@ describe('UserRepository', () => {
   });
   describe('register', () => {
     it('should create user', async () => {
-      const inserted: Entities['users']['insert'] = {
-        email: 'johndoe@mail.com',
-        password_hash: 'hashedpassword123',
-        full_name: 'John Doe',
-        auth_provider: 'email',
-        is_email_verified: false,
-        email_verification_expires_at: new Date().getTime(),
-        email_verification_token: 'random-string-token',
-      };
+      const inserted: Entities['users']['insert'] = factories.users();
       const result = await userRepository.create(inserted);
       expect(result.email).toEqual(inserted.email);
       const { count } = await db
@@ -78,10 +70,7 @@ describe('UserRepository', () => {
       expect(Number(count)).toEqual(1);
     });
     it('should create anonymous user', async () => {
-      const inserted: Entities['users']['insert'] = {
-        email: 'johndoe@mail.com',
-        full_name: 'John Doe',
-      };
+      const inserted: Entities['users']['insert'] = factories.users();
       const result = await userRepository.create(inserted);
       expect(result.email).toEqual(inserted.email);
       const { count } = await db

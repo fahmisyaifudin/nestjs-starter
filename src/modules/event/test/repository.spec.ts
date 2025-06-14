@@ -32,10 +32,14 @@ describe('EventRepository', () => {
     eventRepository = moduleRef.get<EventRepository>(EventRepository);
   });
 
-  beforeEach(async () => {
-    await db.deleteFrom('event_forms').execute();
+  afterEach(async () => {
+    await db.deleteFrom('transactions').execute();
+    await db.deleteFrom('event_form_tickets').execute();
+    await db.deleteFrom('tickets').execute();
     await db.deleteFrom('event_tickets').execute();
+    await db.deleteFrom('event_forms').execute();
     await db.deleteFrom('events').execute();
+    await db.deleteFrom('users').execute();
   });
 
   afterAll(async () => {

@@ -5,6 +5,7 @@ import { factories } from '../factory';
 import { Api } from '../schema';
 import { AuthService } from '../../auth/service';
 import { InternalServerErrorException } from '@nestjs/common';
+import { PaymentRepository } from '../../payment/repository';
 
 describe('EventService', () => {
   let service: EventService;
@@ -35,6 +36,10 @@ describe('EventService', () => {
     createAnonymous: jest.fn(),
   };
 
+  const mockPaymentRepository = {
+    createQr: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -46,6 +51,10 @@ describe('EventService', () => {
         {
           provide: AuthService,
           useValue: mockAuthService,
+        },
+        {
+          provide: PaymentRepository,
+          useValue: mockPaymentRepository,
         },
       ],
     }).compile();
@@ -187,6 +196,9 @@ describe('EventService', () => {
         { id: expect.any(String), code: expect.any(String) },
         { id: expect.any(String), code: expect.any(String) },
       ]);
+      mockPaymentRepository.createQr.mockResolvedValue({
+        id: mockPaymentUrl,
+      });
 
       mockEventRepository.storeTicketForm.mockResolvedValue({});
       mockEventRepository.storeTransaction.mockResolvedValue({
@@ -258,7 +270,7 @@ describe('EventService', () => {
           user_id: mockUserUUID,
           status: 'pending',
           amount: 10000,
-          payment_url: '',
+          payment_url: mockPaymentUrl,
           payment_expired_at: expect.any(Number),
         }),
         {},

@@ -9,12 +9,14 @@ import { EventRepository } from './repository';
 import { AuthService } from '../auth/service';
 import { Entities } from 'src/database/schema';
 import * as crypto from 'crypto';
+import { PaymentRepository } from '../payment/repository';
 
 @Injectable()
 export class EventService {
   constructor(
     private eventRepo: EventRepository,
     private authService: AuthService,
+    private paymentRepo: PaymentRepository,
   ) {}
 
   async get(query: Api['get']['query']): Promise<Api['get']['response']> {
@@ -113,18 +115,39 @@ export class EventService {
           );
           const insertedTicket = await this.eventRepo.storeTicket(ticket, trx);
           await this.eventRepo.storeTicketForm(insertForm, trx);
-          const { payment_url } = await this.eventRepo.storeTransaction(
-            {
-              event_id,
-              user_id: user.user.id,
-              status: totalAmount > 0 ? 'pending' : 'success',
+          if (totalAmount > 0) {
+            const trxId = crypto.randomUUID();
+            const qrPayment = await this.paymentRepo.createQr({
               amount: totalAmount,
-              payment_url: '',
-              payment_expired_at: totalAmount > 0 ? Date.now() + 900000 : null, // 15 minutes later
-            },
-            trx,
-          );
-          return { insertedTicket, payment_url };
+              id: trxId,
+            });
+            const { payment_url } = await this.eventRepo.storeTransaction(
+              {
+                id: trxId,
+                event_id,
+                user_id: user.user.id,
+                status: 'pending',
+                amount: totalAmount,
+                payment_url: qrPayment.id,
+                payment_expired_at: Date.now() + 900000, // 15 minutes later
+              },
+              trx,
+            );
+            return { insertedTicket, payment_url };
+          } else {
+            await this.eventRepo.storeTransaction(
+              {
+                event_id,
+                user_id: user.user.id,
+                status: 'success',
+                amount: totalAmount,
+                payment_url: null,
+                payment_expired_at: null,
+              },
+              trx,
+            );
+            return { insertedTicket, payment_url: '' };
+          }
         });
 
       return {
